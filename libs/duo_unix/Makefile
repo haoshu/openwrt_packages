@@ -68,6 +68,12 @@ define Build/Prepare
 	# Workaround for X509_TEA_set_state test in cross compile environment
 	# See - https://github.com/duosecurity/duo_unix/issues/170
 	sed --in-place=.default -e 's/AC_MSG_RESULT(\[no\])/],[AC_MSG_RESULT([no])/g' $(PKG_BUILD_DIR)/autotools/ax_check_x509.m4
+
+	# See - https://github.com/duosecurity/duo_unix/issues/240
+	# Patch to make Duo FAIL_SECURE by nature
+	sed --in-place=.default -e '1,/DUO_FAIL_SAFE/s/DUO_FAIL_SAFE/DUO_FAIL_SECURE/' $(PKG_BUILD_DIR)/lib/util.c
+	# Patch to skip pam_duo when the user is not a member of the groups specified in conf file
+	sed --in-place=.default -e 's/\(bypassed Duo.*\)/\1\n        close_config(\&cfg);\n        return (PAM_IGNORE);/' $(PKG_BUILD_DIR)/pam_duo/pam_duo.c 
 endef
 
 CONFIGURE_VARS += \
